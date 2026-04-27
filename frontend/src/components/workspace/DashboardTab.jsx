@@ -22,11 +22,11 @@ const VOLUNTEER_STATUS_COLORS = {
   Inactive: 'text-slate-400 bg-slate-800',
 };
 
-const CATEGORIES = ['Medical Emergency','Natural Disaster','Food Shortage','Infrastructure','Education','Environmental Hazard','Social Issue','Other'];
-const PRIORITIES = ['Low','Medium','High','Critical'];
-const STATUSES = ['Open','Assigned','In Progress','Resolved'];
-const SKILLS = ['Medical Aid','Rescue Operations','Food Distribution','Counseling','Teaching','Construction','Driving','IT Support','Other'];
-const AVAILABILITY = ['Full-Time','Part-Time','Weekends Only','On-Call'];
+const CATEGORIES = ['Medical Emergency', 'Natural Disaster', 'Food Shortage', 'Infrastructure', 'Education', 'Environmental Hazard', 'Social Issue', 'Other'];
+const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
+const STATUSES = ['Open', 'Assigned', 'In Progress', 'Resolved'];
+const SKILLS = ['Medical Aid', 'Rescue Operations', 'Food Distribution', 'Counseling', 'Teaching', 'Construction', 'Driving', 'IT Support', 'Other'];
+const AVAILABILITY = ['Full-Time', 'Part-Time', 'Weekends Only', 'On-Call'];
 
 // ─── Reusable Input ───────────────────────────────────────────────────────────
 const inputCls = "w-full bg-navy-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500 transition-colors";
@@ -227,13 +227,13 @@ function EditVolunteerModal({ volunteer, onClose, onSaved }) {
               <label className={labelCls}>Gender</label>
               <select value={form.gender} onChange={set('gender')} className={inputCls}>
                 <option value="">Select...</option>
-                {['Male','Female','Non-binary','Prefer not to say'].map(g => <option key={g} value={g}>{g}</option>)}
+                {['Male', 'Female', 'Non-binary', 'Prefer not to say'].map(g => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
             <div>
               <label className={labelCls}>Status</label>
               <select value={form.status} onChange={set('status')} className={inputCls}>
-                {['Available','Busy','Inactive'].map(s => <option key={s} value={s}>{s}</option>)}
+                {['Available', 'Busy', 'Inactive'].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
@@ -334,8 +334,20 @@ export default function DashboardTab({ workspaceId }) {
     setNotifying(problem.id);
     try {
       const res = await api.post(`/workspaces/${workspaceId}/problems/${problem.id}/notify`);
-      const v = res.data.volunteer;
-      toast.success(`Assigned to ${v.name} — ${v.distanceKm} km away`);
+      const { volunteer: v, selectionInfo } = res.data;
+
+      if (selectionInfo.method === 'skill_matched') {
+        toast.success(
+          `✅ Assigned to ${v.name} — ${v.distanceKm} km away\n🎯 Skills matched for ${problem.category}`,
+          { duration: 5000 }
+        );
+      } else {
+        toast(
+          `⚠️ No skill-matched volunteer found.\nAssigned to nearest: ${v.name} — ${v.distanceKm} km away`,
+          { icon: '⚠️', duration: 6000, style: { background: '#78350f', color: '#fef3c7' } }
+        );
+      }
+
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Notification failed');
@@ -369,15 +381,15 @@ export default function DashboardTab({ workspaceId }) {
   }
 
   const stats = [
-    { label: 'Total Problems',    value: data.stats.totalProblems    || 0, icon: AlertCircle, color: 'text-blue-400' },
-    { label: 'Total Volunteers',  value: data.stats.totalVolunteers  || 0, icon: Users,        color: 'text-emerald-400' },
-    { label: 'Assigned',          value: data.stats.assignedProblems || 0, icon: CheckCircle,  color: 'text-purple-400' },
-    { label: 'Unassigned',        value: data.stats.unassignedProblems || 0, icon: Clock,      color: 'text-yellow-400' },
+    { label: 'Total Problems', value: data.stats.totalProblems || 0, icon: AlertCircle, color: 'text-blue-400' },
+    { label: 'Total Volunteers', value: data.stats.totalVolunteers || 0, icon: Users, color: 'text-emerald-400' },
+    { label: 'Assigned', value: data.stats.assignedProblems || 0, icon: CheckCircle, color: 'text-purple-400' },
+    { label: 'Unassigned', value: data.stats.unassignedProblems || 0, icon: Clock, color: 'text-yellow-400' },
   ];
 
   if (loading) return (
     <div className="p-8 animate-pulse space-y-4">
-      <div className="grid grid-cols-4 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 bg-navy-800 rounded-xl" />)}</div>
+      <div className="grid grid-cols-4 gap-4">{[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-navy-800 rounded-xl" />)}</div>
       <div className="h-64 bg-navy-800 rounded-xl" />
     </div>
   );
@@ -400,15 +412,14 @@ export default function DashboardTab({ workspaceId }) {
       {/* Tab switcher */}
       <div className="flex gap-1 bg-navy-900 rounded-xl p-1 mb-6 w-fit">
         {[
-          { key: 'problems',   label: `Problems (${data.problems.length})` },
+          { key: 'problems', label: `Problems (${data.problems.length})` },
           { key: 'volunteers', label: `Volunteers (${data.volunteers.length})` },
         ].map(({ key, label }) => (
           <button key={key} onClick={() => setActiveTab(key)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === key
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === key
                 ? 'bg-emerald-600 text-white'
                 : 'text-slate-400 hover:text-white'
-            }`}>
+              }`}>
             {label}
           </button>
         ))}
@@ -427,7 +438,7 @@ export default function DashboardTab({ workspaceId }) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700 text-slate-400 text-xs">
-                    {['Title','Category','Location','Priority','Status','Volunteer','Distance','Date','Actions'].map(h => (
+                    {['Title', 'Category', 'Location', 'Priority', 'Status', 'Volunteer', 'Distance', 'Date', 'Actions'].map(h => (
                       <th key={h} className="text-left px-4 py-3 font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -503,7 +514,7 @@ export default function DashboardTab({ workspaceId }) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700 text-slate-400 text-xs">
-                    {['Name','Email','Phone','City','Skills','Availability','Status','Actions'].map(h => (
+                    {['Name', 'Email', 'Phone', 'City', 'Skills', 'Availability', 'Status', 'Actions'].map(h => (
                       <th key={h} className="text-left px-4 py-3 font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -557,7 +568,7 @@ export default function DashboardTab({ workspaceId }) {
       )}
 
       {/* ── Edit Modals ── */}
-      {editProblem   && <EditProblemModal   problem={editProblem}     onClose={() => setEditProblem(null)}   onSaved={handleProblemSaved}   />}
+      {editProblem && <EditProblemModal problem={editProblem} onClose={() => setEditProblem(null)} onSaved={handleProblemSaved} />}
       {editVolunteer && <EditVolunteerModal volunteer={editVolunteer} onClose={() => setEditVolunteer(null)} onSaved={handleVolunteerSaved} />}
 
       {/* ── Delete Confirm Modal ── */}
