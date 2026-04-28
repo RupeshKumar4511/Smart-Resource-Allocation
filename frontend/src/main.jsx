@@ -6,11 +6,18 @@ import { store } from './app/store';
 import App from './App';
 import './index.css';
 
+const toastConfig = {
+  style: { 
+    background: '#1e293b', 
+    color: '#f8fafc', 
+    border: '1px solid #334155' 
+  }
+};
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
       <App />
-      <Toaster position="top-right" toastOptions={{ style: { background: '#1e293b', color: '#f8fafc', border: '1px solid #334155' } }} />
+      <Toaster position="top-right" toastOptions={toastConfig}/>
     </Provider>
   </StrictMode>
 );
